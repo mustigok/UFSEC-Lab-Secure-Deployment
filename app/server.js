@@ -7,7 +7,18 @@ app.use(cors());
 app.use(cors({ origin: "https://labdeploy-webapp-<yourname>.azurewebsites.net" }));
 
 // insecure: uses a default password if env var missing
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const { DefaultAzureCredential } = require("@azure/identity");
+const { SecretClient } = require("@azure/keyvault-secrets");
+ 
+const credential = new DefaultAzureCredential();
+const vaultName = process.env.KEYVAULT_NAME;
+const url = `https://${vaultName}.vault.azure.net`;
+const client = new SecretClient(url, credential);
+ 
+async function getAdminPassword() {
+const secret = await client.getSecret("ADMIN-PASSWORD");
+return secret.value;
+}
 
 app.get('/admin', (req, res) => {
  if (!process.env.ADMIN_PASSWORD) {
