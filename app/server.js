@@ -2,23 +2,6 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 
-const dns = require('dns');
- 
-app.get('/ping', (req, res) => {
-const host = req.query.host;
-if (!host) return res.status(400).send('host required');
- 
-// very basic validation: host must look like a hostname or IP
-if (!/^[A-Za-z0-9.-]{1,253}$/.test(host)) {
-return res.status(400).send('invalid host');
-}
- 
-dns.lookup(host, (err, address) => {
-if (err) return res.status(500).send('lookup failed');
-res.send(`Resolved ${host} -> ${address}`);
-});
-});
-
 // insecure: allows all origins
 app.use(cors());
 app.use(cors({ origin: "https://labdeploy-webapp-<yourname>.azurewebsites.net" }));
