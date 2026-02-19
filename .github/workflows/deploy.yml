@@ -1,26 +1,24 @@
 name: Build and Deploy
-on: 
-  workflow_dispatch: 
+on: [push]
 jobs:
   build-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build image
-        run: |
-          docker build -t myapp:latest .
-      - name: Push to ACR
-        run: |
-          az login --service-principal -u ${{ secrets.AZURE_USER }} -p ${{ secrets.AZURE_PASS }} --tenant ${{ secrets.AZURE_TENANT }}
-          az acr login -n labdeployacr
-          docker tag myapp:latest labdeployacr.azurecr.io/myapp:latest
-          docker push labdeployacr.azurecr.io/myapp:latest
-      - name: Deploy to WebApp
-        run: |
-          az webapp config container set \
-          -g RGLabDeploy \
-          -n labdeploy-webapp \
-          --container-image-name labdeployacr.azurecr.io/myapp:latest \
-          --container-registry-url https://labdeployacr.azurecr.io \
-          --container-registry-user <USERNAME> \
-          --container-registry-password <PASSWORD>
+  runs-on: ubuntu-latest
+  steps:
+    uses: actions/checkout@v3
+ 
+    name: Build image
+    run: |
+      docker build -t myapp:latest .
+ 
+    name: Push to ACR
+    run: |
+      az login --service-principal -u ${{ secrets.AZURE_USER }} -p ${{ secrets.AZURE_PASS }} --tenant ${{ secrets.AZURE_TENANT }}
+      az acr login -n sslablabacr
+      docker tag myapp:latest sslablabacr.azurecr.io/myapp:latest
+      docker push sslablabacr.azurecr.io/myapp:latest
+ 
+    name: Deploy to WebApp
+    uses: azure/webapps-deploy@v2
+    with:
+      app-name: sslab-webapp
+      images: sslablabacr.azurecr.io/myapp:latest
