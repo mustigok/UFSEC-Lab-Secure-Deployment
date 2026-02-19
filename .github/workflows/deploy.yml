@@ -1,11 +1,21 @@
 name: Build and Deploy
 on: 
-  workflow_dispatch: 
+  workflow_dispatch:
+permissions:
+  contents: read
+  security-events: write
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript
+ 
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
       - name: Build image
         run: |
           docker build -t myapp:latest .
