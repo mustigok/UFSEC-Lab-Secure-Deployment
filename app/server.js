@@ -23,9 +23,12 @@ res.send(`Resolved ${host} -> ${address}`);
 app.use(cors());
 
 // insecure: uses a default password if env var missing
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 app.get('/admin', (req, res) => {
+ if (!process.env.ADMIN_PASSWORD) {
+return res.status(500).send("Admin password missing — please configure ADMIN_PASSWORD.");
+}
   const pw = req.query.pw;
   if (pw === ADMIN_PASSWORD) {
     res.send('Welcome admin');
