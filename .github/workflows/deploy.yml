@@ -1,28 +1,29 @@
 name: Build and Deploy
-on: [push]
+on: 
+  workflow_dispatch: 
 jobs:
   build-deploy:
-  runs-on: ubuntu-latest
-  steps:
-    uses: actions/checkout@v3
- 
-    name: Build image
-    run: |
-      docker build -t myapp:latest .
-    
-    name: Sign in to Azure
-    uses: azure/login@v2
-    with:
-      creds: ${{secrets.AZURE_CREDENTIALS}}
-    
-    name: Push to ACR
-    run: |
-      az acr login -n sslablabacr
-      docker tag myapp:latest sslablabacr.azurecr.io/myapp:latest
-      docker push sslablabacr.azurecr.io/myapp:latest
- 
-    name: Deploy to WebApp
-    uses: azure/webapps-deploy@v2
-    with:
-      app-name: sslab-webapp
-      images: sslablabacr.azurecr.io/myapp:latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build image
+        run: |
+          docker build -t myapp:latest .
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
+      - name: Push to ACR
+        run: |
+          az acr login -n labdeployacrmgo
+          docker tag myapp:latest labdeployacrmgo.azurecr.io/myapp:latest
+          docker push labdeployacrmgo.azurecr.io/myapp:latest
+      - name: Deploy to WebApp
+        run: |
+          az webapp config container set \
+          -g RGLabDeploy-mgo \
+          -n labdeploy-webapp-mgo \
+          --container-image-name labdeployacrmgo.azurecr.io/myapp:latest \
+          --container-registry-url https://labdeployacrmgo.azurecr.io \
+          --container-registry-user ${{secrets.ACR_USER}} \
+          --container-registry-password ${{secrets.ACR_PWD}}
